@@ -1,0 +1,58 @@
+# Terraform state files
+*.tfstate
+*.tfstate.*
+.terraform/terraform.tfstate
+.terraform.tfstate
+.terraform.tfstate.backup
+
+# Crash log
+crash.log
+
+# Sensitive variable files (ignore actual tfvars with secrets)
+# Keep example files in repo e.g. *.example.tfvars
+*.tfvars
+*.tfvars.json
+
+# Ignore secrets-only tfvars in envs
+envs/*.secrets.tfvars
+
+# Override files
+override.tf
+override.tf.json
+
+# Local CLI configs
+.terraform/
+.terraform.lock.hcl
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# IDE/editor settings
+.vscode/
+.idea/
+*.swp
+
+# Windows PowerShell history
+ConsoleHost_history.txt
+
+# Optional: lockfile for providers
+.terraform.lock.hcl
+
+# Ignore secrets (if you accidentally store them)
+secret*.*
+
+# If you use keychain or credential helper
+.azcli
+
+# End of .gitignore
+
+# Ignore terraform plan files
+*.tfplan
+
+# Ignore sdk-auth JSON files that may contain service principal credentials
+scripts/*sdk-auth.json
+
+# Ignore local terraform binary (don't commit executables)
+terraform.exe
+Terraform Guide for Azure.txt
