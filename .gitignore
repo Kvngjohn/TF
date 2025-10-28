@@ -56,3 +56,5 @@ scripts/*sdk-auth.json
 # Ignore local terraform binary (don't commit executables)
 terraform.exe
 Terraform Guide for Azure.txt
+installers/
+

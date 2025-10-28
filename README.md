@@ -108,7 +108,6 @@ If you want to run Terraform in CI using GitHub Actions, follow these steps:
 
 3) The repository includes `.github/workflows/terraform.yml` which runs `plan` on push/PR and uploads the plan as an artifact. The `apply` job is protected by the `production` environment — it will wait for an approval before running.
 
-4) If you prefer using the SDK auth JSON, you can store the `AZURE_CREDENTIALS` (the sdk-auth JSON from `az ad sp create-for-rbac --sdk-auth`) as a single secret and use that with `azure/login` as well.
 
 Security reminder: Do not store TF state or raw secrets in the repository. Use the GitHub Secrets store for CI and consider a remote backend (Azure Storage) for state.
 
@@ -123,3 +122,6 @@ cd F:\Terraform
 git remote add origin https://github.com/<your-user-or-org>/<repo>.git
 git branch -M main
 git push -u origin main
+git add .gitignore LICENSE.txt README.md TF/*.tf scripts/create-sp.ps1
+
+#To add secrets in github - goto settings - secrets and varaibles - add sp secret etc
