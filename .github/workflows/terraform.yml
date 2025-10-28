@@ -25,20 +25,17 @@ jobs:
       TF_VAR_tenant_id: ${{ secrets.TENANT_ID }}
 
     outputs:
-      plan_exitcode: ${{ steps.plan_ec.outputs.exitcode }}
+      plan_exitcode: ${{ steps.plan_run.outputs.exitcode }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.6.0"
           terraform_wrapper: false
 
-      - name: Azure login
-        uses: azure/login@v2
+      - uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -58,22 +55,16 @@ jobs:
         id: plan_run
         working-directory: TF
         run: |
-          set -e
-          terraform plan -input=false \
-            -lock-timeout=300s \
-            -detailed-exitcode \
+          terraform plan -input=false -lock-timeout=300s -detailed-exitcode \
             -var "project_name=${{ secrets.PROJECT_NAME }}" \
             -var "subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
             -var "tenant_id=${{ secrets.TENANT_ID }}" \
             -var "admin_password=${{ secrets.ADMIN_PASSWORD }}" \
             -out=tfplan -no-color || ec=$?
           if [ -z "${ec:-}" ]; then ec=0; fi
-          echo "Terraform exit code: $ec"
           echo "exitcode=$ec" >> $GITHUB_OUTPUT
-
-      - name: Expose plan exitcode
-        id: plan_ec
-        run: echo "exitcode=${{ steps.plan_run.outputs.exitcode }}" >> $GITHUB_OUTPUT
+        outputs:
+          exitcode: ${{ steps.plan_run.outputs.exitcode }}
 
       - name: Upload plan artifact
         if: ${{ steps.plan_run.outputs.exitcode == '0' || steps.plan_run.outputs.exitcode == '2' }}
@@ -84,11 +75,10 @@ jobs:
           retention-days: 7
 
   terraform-apply:
-    name: Terraform Apply (requires approval)
+    name: Terraform Apply (automatic, no approval)
     needs: terraform-plan
     if: ${{ needs.terraform-plan.outputs.plan_exitcode == '2' }}
     runs-on: ubuntu-latest
-    environment: dev
     env:
       TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
       TF_VAR_project_name: ${{ secrets.PROJECT_NAME }}
@@ -96,17 +86,14 @@ jobs:
       TF_VAR_tenant_id: ${{ secrets.TENANT_ID }}
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.6.0"
           terraform_wrapper: false
 
-      - name: Azure login
-        uses: azure/login@v2
+      - uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
