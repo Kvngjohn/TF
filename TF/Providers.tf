@@ -1,61 +1,61 @@
-  terraform {
-  required_version = ">= 1.0"
+########################################
+# providers.tf  — AzureRM + SP (secret)
+########################################
+
+terraform {
+  required_version = ">= 1.3"
 
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      # Allow the 4.x series (lockfile shows 4.49.0). Use a broad constraint for
-      # compatibility with current lockfile: >=4.0, <5.0
-      version = ">= 4.0, < 5.0"
+      version = "~> 3.116" # pin to a recent 3.x; adjust as needed
     }
   }
+
+  # --- OPTIONAL: Remote state in Azure Storage ---
+  # Uncomment and fill these if you want remote state (recommended)
+  # backend "azurerm" {
+  #   resource_group_name  = "az-rim-eu2-tf"
+  #   storage_account_name = "azrimeu2tfstatedev"
+  #   container_name       = "tfstate"
+  #   key                  = "dev/winvm.tfstate"
+  # }
 }
 
-# provider "azurerm" {}
-  # backend "azurerm" {}
-
+# AzureRM provider
+# Auth is taken from environment variables (no use_cli):
+#   ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_TENANT_ID, ARM_SUBSCRIPTION_ID
 provider "azurerm" {
-  features {}
-  #   ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_TENANT_ID, ARM_SUBSCRIPTION_ID
-  # Toggle whether provider should use the local `az login` session. For CI use a service principal
-  # and set `var.use_cli = false` (the workflow sets authentication via env-vars / secrets).
-  use_cli = var.use_cli
+  features {
+    # Tweak as you like; sensible defaults shown
+    resource_group {
+      prevent_deletion_if_contains_resources = false
+    }
+  }
 
-  # If you prefer explicit provider configuration, you can pass subscription_id
-  # and tenant_id via variables (non-sensitive). Terraform will use these if set.
-  subscription_id = var.subscription_id != "" ? var.subscription_id : null
-  tenant_id       = var.tenant_id != "" ? var.tenant_id : null
+  # Recommended in larger tenants to avoid surprise registrations:
+  # skip_provider_registration = true
+
+  # Optional: Default tags applied to all supported resources
+  # resource_provider_registrations = "none"
+  # disable_terraform_partner_id = true
+
+  # default tags (edit/remove to your standards)
+  # default_tags {
+  #   tags = {
+  #     environment = "dev"
+  #     owner       = "iac"
+  #   }
+  # }
 }
 
- # Default: local state (simple for free account POC)
-  # To enable remote state, uncomment backend and run:
-  # terraform init -backend-config="resource_group_name=az-rim-eu2-tf" \
-  #   -backend-config="storage_account_name=azrimeu2tfstate-dev" \
-  #   -backend-config="key=dev/winvm.tfstate"
-
-# ---------------------------------------------------------------------------
-# Example: Service Principal (environment variable) authentication for CI
-#
-# For non-interactive CI/CD, create a service principal and set the following
-# environment variables in the runner/agent: ARM_CLIENT_ID, ARM_CLIENT_SECRET,
-# ARM_TENANT_ID, ARM_SUBSCRIPTION_ID. The azurerm provider will pick them up
-# automatically. You can optionally set subscription_id or tenant_id in the
-# provider or pass them via variables.
-#
-# Example (commented) provider block using env vars / explicit fields:
-#
-# provider "azurerm" {
-#   features {}
-#
-#   # If you set the following environment variables, the provider will use them:
-#   #   ARM_CLIENT_ID, ARM_CLIENT_SECRET, ARM_TENANT_ID, ARM_SUBSCRIPTION_ID
-#
-#   # Optional: explicitly pin a subscription or tenant from variables
-#   # subscription_id = var.subscription_id
-#   # tenant_id       = var.tenant_id
-#   # client_id       = var.client_id
-#   # client_secret   = var.client_secret
-#
-#   # When using env-var auth, prefer not to set `use_cli = true`.
-# }
-# ---------------------------------------------------------------------------
+# (Optional) Expose information about the current principal for debugging
+data "azurerm_client_config" "current" {}
+output "auth_debug" {
+  value = {
+    tenant_id       = data.azurerm_client_config.current.tenant_id
+    object_id       = data.azurerm_client_config.current.object_id
+    subscription_id = data.azurerm_client_config.current.subscription_id
+  }
+  sensitive = false
+}

@@ -1,11 +1,10 @@
 variable "project_name" {
-  description = "Short name for this POC"
+  description = "Short, DNS-safe name used as a prefix for resources"
   type        = string
-  default     = "rim-dev"
 }
 
 variable "location" {
-  description = "Azure region"
+  description = "Azure region (e.g., eastus2, westeurope)"
   type        = string
   default     = "eastus2"
 }
@@ -13,64 +12,44 @@ variable "location" {
 variable "address_space" {
   description = "VNet CIDR"
   type        = string
-  default     = "10.40.0.0/16"
+  default     = "10.20.0.0/16"
 }
 
 variable "subnet_prefix" {
   description = "Subnet CIDR"
   type        = string
-  default     = "10.40.1.0/24"
+  default     = "10.20.1.0/24"
+}
+
+variable "allow_rdp_from_cidr" {
+  description = "Your public IP/CIDR allowed to RDP (e.g., x.x.x.x/32). DO NOT leave 0.0.0.0/0."
+  type        = string
+  default     = "0.0.0.0/0"
+}
+
+variable "vm_size" {
+  description = "VM size"
+  type        = string
+  default     = "Standard_B2ms"
 }
 
 variable "admin_username" {
-  description = "Windows VM admin username"
+  description = "Local admin username"
   type        = string
   default     = "azureadmin"
 }
 
 variable "admin_password" {
-  description = "Windows VM admin password"
+  description = "Local admin password"
   type        = string
   sensitive   = true
-  default     = ""
-}
-
-variable "vm_size" {
-  description = "VM size (stay small for free tier credits)"
-  type        = string
-  default     = "Standard_B2s"
-}
-
-variable "allow_rdp_from_cidr" {
-  description = "Your public IP/CIDR to allow RDP (3389). Use x.x.x.x/32"
-  type        = string
-  default     = "0.0.0.0/0" # CHANGE to your IP for security or Use a VPN/Private Endpoint and keep RDP fully private.
 }
 
 variable "tags" {
   description = "Common resource tags"
   type        = map(string)
-  default     = {
-    "env"     = "dev"
-    "owner"   = "John"
-    "project" = "winvm-poc"
+  default = {
+    environment = "dev"
+    owner       = "iac"
   }
-}
-
-variable "subscription_id" {
-  description = "Optional: Azure subscription id to explicitly use for provider. Not secret."
-  type        = string
-  default     = ""
-}
-
-variable "tenant_id" {
-  description = "Optional: Azure tenant id to explicitly use for provider."
-  type        = string
-  default     = ""
-}
-
-variable "use_cli" {
-  description = "Whether to use the local Azure CLI session for auth (true for local dev). Set to false in CI when using a service principal."
-  type        = bool
-  default     = true
 }

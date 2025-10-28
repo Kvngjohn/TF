@@ -1,5 +1,5 @@
 ########################################
-# main.tf — Simple Win VM POC on Azure
+# main.tf — Simple Windows VM POC on Azure
 ########################################
 
 locals {
@@ -24,11 +24,8 @@ resource "azurerm_virtual_network" "vnet" {
   name                = local.vnet_name
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-
-  # var.address_space is a single CIDR; wrap as a list
-  address_space = [var.address_space]
-
-  tags = var.tags
+  address_space       = [var.address_space]
+  tags                = var.tags
 }
 
 resource "azurerm_subnet" "subnet" {
@@ -38,8 +35,7 @@ resource "azurerm_subnet" "subnet" {
   address_prefixes     = [var.subnet_prefix]
 }
 
-# 3) NSG — allow RDP only from your CIDR, then implicitly deny the rest
-# (No explicit "deny all" needed; Azure NSGs deny unmatched traffic.)
+# 3) NSG — allow RDP only from your CIDR
 resource "azurerm_network_security_group" "nsg" {
   name                = local.nsg_name
   location            = var.location
@@ -64,19 +60,17 @@ resource "azurerm_subnet_network_security_group_association" "assoc" {
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
-# 4) Public IP (POC convenience; for production prefer Private + Bastion/Jumpbox)
-
+# 4) Public IP
 resource "azurerm_public_ip" "pip" {
   name                = local.pip_name
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
-  allocation_method   = "Dynamic"
   sku                 = "Standard"
-  allocation_method   = "Static"   # <-- required for Standard
+  allocation_method   = "Static"
   tags                = var.tags
 }
 
-# 5) NIC — use Dynamic private IP to avoid validation for missing static IP value
+# 5) NIC
 resource "azurerm_network_interface" "nic" {
   name                = local.nic_name
   location            = var.location
@@ -86,12 +80,12 @@ resource "azurerm_network_interface" "nic" {
   ip_configuration {
     name                          = "ipconfig1"
     subnet_id                     = azurerm_subnet.subnet.id
-    private_ip_address_allocation = "Dynamic"    # <— IMPORTANT: avoid static without setting private_ip_address
+    private_ip_address_allocation = "Dynamic"
     public_ip_address_id          = azurerm_public_ip.pip.id
   }
 }
 
-# 6) Windows VM (2022 Azure Edition)
+# 6) Windows VM
 resource "azurerm_windows_virtual_machine" "vm" {
   name                = local.vm_name
   location            = var.location
@@ -117,26 +111,7 @@ resource "azurerm_windows_virtual_machine" "vm" {
     version   = "latest"
   }
 
-  # Optional quality-of-life flags
   enable_automatic_updates = true
   patch_mode               = "AutomaticByOS"
-
-  # For a POC you can omit this block and let managed boot diagnostics enable automatically,
-  # or leave it disabled as below to avoid creating a storage account.
-  # boot_diagnostics {}                      # enable managed boot diagnostics
-  # OR disable explicitly:
   boot_diagnostics { storage_account_uri = null }
-}
-
-# 7) Handy outputs
-output "resource_group" {
-  value = azurerm_resource_group.rg.name
-}
-
-output "public_ip" {
-  value = azurerm_public_ip.pip.ip_address
-}
-
-output "rdp_hint" {
-  value = "mstsc /v:${azurerm_public_ip.pip.ip_address}:3389"
 }
