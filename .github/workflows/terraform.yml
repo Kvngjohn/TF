@@ -28,14 +28,17 @@ jobs:
       plan_exitcode: ${{ steps.plan_run.outputs.exitcode }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: hashicorp/setup-terraform@v3
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.6.0"
           terraform_wrapper: false
 
-      - uses: azure/login@v2
+      - name: Azure login
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
@@ -55,6 +58,7 @@ jobs:
         id: plan_run
         working-directory: TF
         run: |
+          set -e
           terraform plan -input=false -lock-timeout=300s -detailed-exitcode \
             -var "project_name=${{ secrets.PROJECT_NAME }}" \
             -var "subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
@@ -63,8 +67,6 @@ jobs:
             -out=tfplan -no-color || ec=$?
           if [ -z "${ec:-}" ]; then ec=0; fi
           echo "exitcode=$ec" >> $GITHUB_OUTPUT
-        outputs:
-          exitcode: ${{ steps.plan_run.outputs.exitcode }}
 
       - name: Upload plan artifact
         if: ${{ steps.plan_run.outputs.exitcode == '0' || steps.plan_run.outputs.exitcode == '2' }}
@@ -86,14 +88,17 @@ jobs:
       TF_VAR_tenant_id: ${{ secrets.TENANT_ID }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: hashicorp/setup-terraform@v3
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.6.0"
           terraform_wrapper: false
 
-      - uses: azure/login@v2
+      - name: Azure login
+        uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
