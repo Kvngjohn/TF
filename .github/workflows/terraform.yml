@@ -65,6 +65,10 @@ jobs:
             -var "tenant_id=${{ secrets.TENANT_ID }}" \
             -var "admin_password=${{ secrets.ADMIN_PASSWORD }}" \
             -out=tfplan -no-color || ec=$?
+          
+          # Debug: Print the exit code
+          echo "Terraform plan exit code: $ec"
+
           if [ -z "${ec:-}" ]; then ec=0; fi
           echo "exitcode=$ec" >> $GITHUB_OUTPUT
 
@@ -75,6 +79,7 @@ jobs:
           name: tfplan
           path: TF/tfplan
           retention-days: 7
+          continue-on-error: true  # This ensures the job continues even if the artifact upload fails
 
   terraform-apply:
     name: Terraform Apply (automatic, no approval)
@@ -107,6 +112,9 @@ jobs:
         with:
           name: tfplan
           path: TF
+
+      - name: Check contents of downloaded artifact
+        run: ls -l TF  # Debug: Verify if the tfplan file exists
 
       - name: Terraform init
         working-directory: TF
