@@ -1,54 +1,15 @@
-variable "rg_name" {
-  description = "The name of the resource group"
-  type        = string
-}
+variable "rg_name"             { type = string }
+variable "location"            { type = string }
+variable "tags"                { type = map(string) }
 
-variable "location" {
-  description = "The location of the resources"
-  type        = string
-}
+variable "vnet_name"           { type = string }
+variable "address_space"       { type = list(string) }
 
-variable "tags" {
-  description = "Tags for the resources"
-  type        = map(string)
-}
+variable "snet_name"           { type = string }
+variable "subnet_prefix"       { type = list(string) }
 
-variable "vnet_name" {
-  description = "The name of the virtual network"
-  type        = string
-}
+variable "nsg_name"            { type = string }
+variable "allow_rdp_from_cidr" { type = string }
 
-variable "address_space" {
-  description = "The address space for the virtual network"
-  type        = list(string)
-}
-
-variable "snet_name" {
-  description = "The name of the subnet"
-  type        = string
-}
-
-variable "subnet_prefix" {
-  description = "The subnet's address prefix"
-  type        = list(string)
-}
-
-variable "nsg_name" {
-  description = "The name of the network security group"
-  type        = string
-}
-
-variable "allow_rdp_from_cidr" {
-  description = "CIDR to allow RDP from"
-  type        = string
-}
-
-variable "pip_name" {
-  description = "The name of the public IP"
-  type        = string
-}
-
-variable "nic_name" {
-  description = "The name of the network interface"
-  type        = string
-}
+variable "pip_name"            { type = string }
+variable "nic_name"            { type = string }

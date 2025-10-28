@@ -22,8 +22,5 @@ resource "azurerm_windows_virtual_machine" "vm" {
     sku       = "2022-datacenter-azure-edition"
     version   = "latest"
   }
-
-  enable_automatic_updates = true
-  patch_mode               = "AutomaticByOS"
-  boot_diagnostics { storage_account_uri = null }
+  
 }

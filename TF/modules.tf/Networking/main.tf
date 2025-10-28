@@ -14,6 +14,7 @@ resource "azurerm_virtual_network" "vnet" {
   tags                = var.tags
 }
 
+# Ensure the Subnet is created only after the Virtual Network is created
 resource "azurerm_subnet" "subnet" {
   name                 = var.snet_name
   resource_group_name  = azurerm_resource_group.rg.name
@@ -46,17 +47,15 @@ resource "azurerm_subnet_network_security_group_association" "assoc" {
   network_security_group_id = azurerm_network_security_group.nsg.id
 }
 
-# 4) Public IP
 resource "azurerm_public_ip" "pip" {
   name                = var.pip_name
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
+  allocation_method   = "Static"   # Standard requires Static
   sku                 = "Standard"
-  allocation_method   = "Static"
   tags                = var.tags
 }
 
-# 5) NIC
 resource "azurerm_network_interface" "nic" {
   name                = var.nic_name
   location            = var.location
