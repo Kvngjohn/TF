@@ -1,34 +1,24 @@
-name: Terraform CI/CD
+name: Terraform Workflow
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
-  workflow_dispatch: {}
-
-permissions:
-  contents: read
-
-env:
-  TF_IN_AUTOMATION: "true"
-  TF_INPUT: "false"
+    branches:
+      - main
 
 jobs:
   terraform-plan:
-    name: Terraform Plan
     runs-on: ubuntu-latest
     env:
-      TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
-      TF_VAR_project_name: ${{ secrets.PROJECT_NAME }}
-      TF_VAR_subscription_id: ${{ secrets.SUBSCRIPTION_ID }}
-      TF_VAR_tenant_id: ${{ secrets.TENANT_ID }}
-
-    outputs:
-      plan_exitcode: ${{ steps.plan_run.outputs.exitcode }}
-
+      ARM_CLIENT_ID:        ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET:    ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID:        ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID:  ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}  # Passes the admin password as an environment variable
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Terraform
@@ -37,63 +27,45 @@ jobs:
           terraform_version: "1.6.0"
           terraform_wrapper: false
 
-      - name: Azure login
+      - name: Azure login (Service Principal)
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Terraform fmt
-        working-directory: TF
-        run: terraform fmt -check -diff || true
-
-      - name: Terraform init
+      - name: Terraform Init
         working-directory: TF
         run: terraform init -input=false
 
-      - name: Terraform validate
+      - name: Terraform Validate
         working-directory: TF
         run: terraform validate
 
-      - name: Terraform plan
-        id: plan_run
+      - name: Terraform Plan
         working-directory: TF
         run: |
           set -e
-          terraform plan -input=false -lock-timeout=300s -detailed-exitcode \
-            -var "project_name=${{ secrets.PROJECT_NAME }}" \
-            -var "subscription_id=${{ secrets.SUBSCRIPTION_ID }}" \
-            -var "tenant_id=${{ secrets.TENANT_ID }}" \
-            -var "admin_password=${{ secrets.ADMIN_PASSWORD }}" \
-            -out=tfplan -no-color || ec=$?
-          
-          # Debug: Print the exit code
-          echo "Terraform plan exit code: $ec"
+          terraform plan -input=false -lock-timeout=300s -no-color \
+            -var-file="envs/dev.tfvars" \
+            -out=tfplan
 
-          if [ -z "${ec:-}" ]; then ec=0; fi
-          echo "exitcode=$ec" >> $GITHUB_OUTPUT
-
-      - name: Upload plan artifact
-        if: ${{ steps.plan_run.outputs.exitcode == '0' || steps.plan_run.outputs.exitcode == '2' }}
+      - name: Upload Plan Artifact
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
           path: TF/tfplan
-          retention-days: 7
-          continue-on-error: true  # This ensures the job continues even if the artifact upload fails
 
   terraform-apply:
-    name: Terraform Apply (automatic, no approval)
-    needs: terraform-plan
-    if: ${{ needs.terraform-plan.outputs.plan_exitcode == '2' }}
+    needs: terraform-plan  # Ensure the plan job is completed first
     runs-on: ubuntu-latest
+    environment: dev  # Specify the environment (e.g., dev, prod)
     env:
-      TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
-      TF_VAR_project_name: ${{ secrets.PROJECT_NAME }}
-      TF_VAR_subscription_id: ${{ secrets.SUBSCRIPTION_ID }}
-      TF_VAR_tenant_id: ${{ secrets.TENANT_ID }}
-
+      ARM_CLIENT_ID:        ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET:    ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_TENANT_ID:        ${{ secrets.ARM_TENANT_ID }}
+      ARM_SUBSCRIPTION_ID:  ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}  # Passes the admin password for apply
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Terraform
@@ -102,24 +74,21 @@ jobs:
           terraform_version: "1.6.0"
           terraform_wrapper: false
 
-      - name: Azure login
+      - name: Azure login (Service Principal)
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Download plan artifact
+      - name: Download Plan Artifact
         uses: actions/download-artifact@v4
         with:
           name: tfplan
           path: TF
 
-      - name: Check contents of downloaded artifact
-        run: ls -l TF  # Debug: Verify if the tfplan file exists
-
-      - name: Terraform init
+      - name: Terraform Init
         working-directory: TF
         run: terraform init -input=false
 
-      - name: Terraform apply
+      - name: Terraform Apply
         working-directory: TF
-        run: terraform apply -input=false -lock-timeout=300s -no-color tfplan
+        run: terraform apply -input=false -lock-timeout=300s -no-color TF/tfplan

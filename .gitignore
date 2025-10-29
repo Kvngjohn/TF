@@ -8,11 +8,6 @@
 # Crash log
 crash.log
 
-# Sensitive variable files (ignore actual tfvars with secrets)
-# Keep example files in repo e.g. *.example.tfvars
-*.tfvars
-*.tfvars.json
-
 # Ignore secrets-only tfvars in envs
 envs/*.secrets.tfvars
 
@@ -55,4 +50,3 @@ scripts/*sdk-auth.json
 
 # Ignore local terraform binary (don't commit executables)
 terraform.exe
-Terraform Guide for Azure.txt
