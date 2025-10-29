@@ -1,44 +1,43 @@
 variable "project_name" {
-  description = "The project name"
-  type        = string
+  type = string
 }
 
 variable "location" {
-  description = "The location of resources"
-  type        = string
+  type = string
+}
+
+variable "resource_group_name" {
+  type = string
 }
 
 variable "address_space" {
-  description = "The address space for the virtual network"
-  type        = string
+  type = string
 }
 
 variable "subnet_prefix" {
-  description = "The subnet address prefix"
-  type        = string
+  type = string
 }
 
-variable "allow_rdp_from_cidr" {
-  description = "CIDR block for allowing RDP"
-  type        = string
+variable "vm_name" {
+  type = string
 }
 
 variable "vm_size" {
-  description = "The size of the virtual machine"
-  type        = string
+  type = string
 }
 
 variable "admin_username" {
-  description = "The admin username for the VM"
-  type        = string
+  type = string
 }
 
 variable "admin_password" {
-  description = "The admin password for the VM"
-  type        = string
+  type      = string
+  sensitive = true
 }
 
 variable "tags" {
-  description = "Tags for the resources"
-  type        = map(string)
+  type = map(string)
+}
+variable "subnet_id" {
+  type = string
 }
