@@ -1,43 +1,54 @@
 variable "project_name" {
-  type = string
+  description = "Project prefix"
+  type        = string
 }
 
 variable "location" {
-  type = string
-}
-
-variable "resource_group_name" {
-  type = string
+  description = "Azure region"
+  type        = string
 }
 
 variable "address_space" {
-  type = string
+  description = "VNet CIDR (single)"
+  type        = string
 }
 
 variable "subnet_prefix" {
-  type = string
+  description = "Subnet CIDR (single)"
+  type        = string
 }
 
-variable "vm_name" {
-  type = string
+variable "allow_rdp_from_cidr" {
+  description = "Your public IP /32"
+  type        = string
 }
 
 variable "vm_size" {
-  type = string
+  description = "VM size"
+  type        = string
 }
 
 variable "admin_username" {
-  type = string
+  description = "VM local admin username"
+  type        = string
 }
 
 variable "admin_password" {
-  type      = string
-  sensitive = true
+  description = "VM local admin password (set via TF_VAR_admin_password)"
+  type        = string
+  sensitive   = true
+}
+
+variable "vm_name" {
+  description = "Optional explicit VM name"
+  type        = string
+  default     = null
 }
 
 variable "tags" {
-  type = map(string)
-}
-variable "subnet_id" {
-  type = string
+  description = "Common tags"
+  type        = map(string)
+  default = {
+    environment = "dev"
+  }
 }

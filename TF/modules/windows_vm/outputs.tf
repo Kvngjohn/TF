@@ -1,8 +1,2 @@
-output "vm_id" {
-  description = "ID of the virtual machine"
-  value       = module.windows_vm.vm_id
-}
-output "vm_ip_address" {
-  description = "Public IP address of the virtual machine"
-  value       = module.windows_vm.public_ip_address
-}
+output "vm_id" { value = azurerm_windows_virtual_machine.vm.id }
+output "vm_name" { value = azurerm_windows_virtual_machine.vm.name }
