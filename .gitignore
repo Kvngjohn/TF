@@ -50,3 +50,5 @@ scripts/*sdk-auth.json
 
 # Ignore local terraform binary (don't commit executables)
 terraform.exe
+.tfvars
+.env

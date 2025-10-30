@@ -1,232 +1,44 @@
 ﻿{
   "version": 4,
   "terraform_version": "1.13.4",
-  "serial": 33,
-  "lineage": "ba6e1e83-c66a-a438-684e-35db456b8e40",
+  "serial": 1,
+  "lineage": "89b5b060-a1e6-5fb2-5d12-43ecde3669d6",
   "outputs": {
-    "rg_name": {
-      "value": "rim-dev-rg",
-      "type": "string"
-    },
-    "vm_name": {
-      "value": "rim-dev-winvm01",
-      "type": "string"
+    "auth_debug": {
+      "value": {
+        "object_id": "3b68b0c7-818c-410f-864d-9f015a2b7efe",
+        "subscription_id": "1244f95f-7fc2-4c47-acfe-130d4ba9344f",
+        "tenant_id": "b03b4457-7ee3-4e33-89da-95f7e4d23d52"
+      },
+      "type": [
+        "object",
+        {
+          "object_id": "string",
+          "subscription_id": "string",
+          "tenant_id": "string"
+        }
+      ]
     }
   },
   "resources": [
     {
-      "mode": "managed",
-      "type": "azurerm_network_security_group",
-      "name": "nsg",
-      "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
-      "instances": [
-        {
-          "status": "tainted",
-          "schema_version": 0,
-          "attributes": {
-            "id": "/subscriptions/1244f95f-7fc2-4c47-acfe-130d4ba9344f/resourceGroups/rim-dev-rg/providers/Microsoft.Network/networkSecurityGroups/rim-dev-nsg",
-            "location": "eastus2",
-            "name": "rim-dev-nsg",
-            "resource_group_name": "rim-dev-rg",
-            "security_rule": [
-              {
-                "access": "Allow",
-                "description": "",
-                "destination_address_prefix": "*",
-                "destination_address_prefixes": [],
-                "destination_application_security_group_ids": [],
-                "destination_port_range": "3389",
-                "destination_port_ranges": [],
-                "direction": "Inbound",
-                "name": "Allow-RDP-From-YourIP",
-                "priority": 100,
-                "protocol": "Tcp",
-                "source_address_prefix": "172.172.176.90/32",
-                "source_address_prefixes": [],
-                "source_application_security_group_ids": [],
-                "source_port_range": "*",
-                "source_port_ranges": []
-              },
-              {
-                "access": "Deny",
-                "description": "",
-                "destination_address_prefix": "*",
-                "destination_address_prefixes": [],
-                "destination_application_security_group_ids": [],
-                "destination_port_range": "*",
-                "destination_port_ranges": [],
-                "direction": "Inbound",
-                "name": "Deny-All-Inbound",
-                "priority": 4096,
-                "protocol": "*",
-                "source_address_prefix": "*",
-                "source_address_prefixes": [],
-                "source_application_security_group_ids": [],
-                "source_port_range": "*",
-                "source_port_ranges": []
-              }
-            ],
-            "tags": {
-              "env": "dev",
-              "owner": "John",
-              "project": "winvm-poc"
-            },
-            "timeouts": null
-          },
-          "sensitive_attributes": [],
-          "identity_schema_version": 0,
-          "identity": {
-            "name": "rim-dev-nsg",
-            "resource_group_name": "rim-dev-rg",
-            "subscription_id": "1244f95f-7fc2-4c47-acfe-130d4ba9344f"
-          },
-          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAwLCJkZWxldGUiOjE4MDAwMDAwMDAwMDAsInJlYWQiOjMwMDAwMDAwMDAwMCwidXBkYXRlIjoxODAwMDAwMDAwMDAwfX0=",
-          "dependencies": [
-            "azurerm_resource_group.rg"
-          ]
-        }
-      ]
-    },
-    {
-      "mode": "managed",
-      "type": "azurerm_resource_group",
-      "name": "rg",
+      "mode": "data",
+      "type": "azurerm_client_config",
+      "name": "current",
       "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
       "instances": [
         {
           "schema_version": 0,
           "attributes": {
-            "id": "/subscriptions/1244f95f-7fc2-4c47-acfe-130d4ba9344f/resourceGroups/rim-dev-rg",
-            "location": "eastus2",
-            "managed_by": "",
-            "name": "rim-dev-rg",
-            "tags": {
-              "env": "dev",
-              "owner": "John",
-              "project": "winvm-poc"
-            },
-            "timeouts": null
-          },
-          "sensitive_attributes": [],
-          "identity_schema_version": 0,
-          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjo1NDAwMDAwMDAwMDAwLCJkZWxldGUiOjU0MDAwMDAwMDAwMDAsInJlYWQiOjMwMDAwMDAwMDAwMCwidXBkYXRlIjo1NDAwMDAwMDAwMDAwfX0="
-        }
-      ]
-    },
-    {
-      "mode": "managed",
-      "type": "azurerm_subnet",
-      "name": "subnet",
-      "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
-      "instances": [
-        {
-          "status": "tainted",
-          "schema_version": 0,
-          "attributes": {
-            "address_prefixes": [
-              "10.40.1.0/24"
-            ],
-            "default_outbound_access_enabled": true,
-            "delegation": [],
-            "id": "/subscriptions/1244f95f-7fc2-4c47-acfe-130d4ba9344f/resourceGroups/rim-dev-rg/providers/Microsoft.Network/virtualNetworks/rim-dev-vnet/subnets/rim-dev-snet",
-            "ip_address_pool": [],
-            "name": "rim-dev-snet",
-            "private_endpoint_network_policies": "Disabled",
-            "private_link_service_network_policies_enabled": true,
-            "resource_group_name": "rim-dev-rg",
-            "service_endpoint_policy_ids": null,
-            "service_endpoints": null,
-            "sharing_scope": "",
-            "timeouts": null,
-            "virtual_network_name": "rim-dev-vnet"
-          },
-          "sensitive_attributes": [],
-          "identity_schema_version": 0,
-          "identity": {
-            "name": "rim-dev-snet",
-            "resource_group_name": "rim-dev-rg",
+            "client_id": "04b07795-8ddb-461a-bbee-02f9e1bf7b46",
+            "id": "Y2xpZW50Q29uZmlncy9jbGllbnRJZD0wNGIwNzc5NS04ZGRiLTQ2MWEtYmJlZS0wMmY5ZTFiZjdiNDY7b2JqZWN0SWQ9M2I2OGIwYzctODE4Yy00MTBmLTg2NGQtOWYwMTVhMmI3ZWZlO3N1YnNjcmlwdGlvbklkPTEyNDRmOTVmLTdmYzItNGM0Ny1hY2ZlLTEzMGQ0YmE5MzQ0Zjt0ZW5hbnRJZD1iMDNiNDQ1Ny03ZWUzLTRlMzMtODlkYS05NWY3ZTRkMjNkNTI=",
+            "object_id": "3b68b0c7-818c-410f-864d-9f015a2b7efe",
             "subscription_id": "1244f95f-7fc2-4c47-acfe-130d4ba9344f",
-            "virtual_network_name": "rim-dev-vnet"
-          },
-          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAwLCJkZWxldGUiOjE4MDAwMDAwMDAwMDAsInJlYWQiOjMwMDAwMDAwMDAwMCwidXBkYXRlIjoxODAwMDAwMDAwMDAwfX0=",
-          "dependencies": [
-            "azurerm_resource_group.rg",
-            "azurerm_virtual_network.vnet"
-          ]
-        }
-      ]
-    },
-    {
-      "mode": "managed",
-      "type": "azurerm_subnet_network_security_group_association",
-      "name": "assoc",
-      "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
-      "instances": [
-        {
-          "schema_version": 0,
-          "attributes": {
-            "id": "/subscriptions/1244f95f-7fc2-4c47-acfe-130d4ba9344f/resourceGroups/rim-dev-rg/providers/Microsoft.Network/virtualNetworks/rim-dev-vnet/subnets/rim-dev-snet",
-            "network_security_group_id": "/subscriptions/1244f95f-7fc2-4c47-acfe-130d4ba9344f/resourceGroups/rim-dev-rg/providers/Microsoft.Network/networkSecurityGroups/rim-dev-nsg",
-            "subnet_id": "/subscriptions/1244f95f-7fc2-4c47-acfe-130d4ba9344f/resourceGroups/rim-dev-rg/providers/Microsoft.Network/virtualNetworks/rim-dev-vnet/subnets/rim-dev-snet",
+            "tenant_id": "b03b4457-7ee3-4e33-89da-95f7e4d23d52",
             "timeouts": null
           },
           "sensitive_attributes": [],
-          "identity_schema_version": 0,
-          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAwLCJkZWxldGUiOjE4MDAwMDAwMDAwMDAsInJlYWQiOjMwMDAwMDAwMDAwMH19",
-          "dependencies": [
-            "azurerm_network_security_group.nsg",
-            "azurerm_resource_group.rg",
-            "azurerm_subnet.subnet",
-            "azurerm_virtual_network.vnet"
-          ]
-        }
-      ]
-    },
-    {
-      "mode": "managed",
-      "type": "azurerm_virtual_network",
-      "name": "vnet",
-      "provider": "provider[\"registry.terraform.io/hashicorp/azurerm\"]",
-      "instances": [
-        {
-          "status": "tainted",
-          "schema_version": 0,
-          "attributes": {
-            "address_space": [
-              "10.40.0.0/16"
-            ],
-            "bgp_community": "",
-            "ddos_protection_plan": [],
-            "dns_servers": [],
-            "edge_zone": "",
-            "encryption": [],
-            "flow_timeout_in_minutes": 0,
-            "guid": "8ed4af48-56fb-4487-a9af-c3ff80423d69",
-            "id": "/subscriptions/1244f95f-7fc2-4c47-acfe-130d4ba9344f/resourceGroups/rim-dev-rg/providers/Microsoft.Network/virtualNetworks/rim-dev-vnet",
-            "ip_address_pool": [],
-            "location": "eastus2",
-            "name": "rim-dev-vnet",
-            "private_endpoint_vnet_policies": "Disabled",
-            "resource_group_name": "rim-dev-rg",
-            "subnet": [],
-            "tags": {
-              "env": "dev",
-              "owner": "John",
-              "project": "winvm-poc"
-            },
-            "timeouts": null
-          },
-          "sensitive_attributes": [],
-          "identity_schema_version": 0,
-          "identity": {
-            "name": "rim-dev-vnet",
-            "resource_group_name": "rim-dev-rg",
-            "subscription_id": "1244f95f-7fc2-4c47-acfe-130d4ba9344f"
-          },
-          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiY3JlYXRlIjoxODAwMDAwMDAwMDAwLCJkZWxldGUiOjE4MDAwMDAwMDAwMDAsInJlYWQiOjMwMDAwMDAwMDAwMCwidXBkYXRlIjoxODAwMDAwMDAwMDAwfX0=",
-          "dependencies": [
-            "azurerm_resource_group.rg"
-          ]
+          "identity_schema_version": 0
         }
       ]
     }
