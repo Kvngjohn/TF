@@ -15,13 +15,14 @@ locals {
 
 resource "random_string" "suffix" {
   length  = 4
-  lower   = true
-  upper   = false
   special = false
+  upper   = false
+  numeric = false
+  lower   = true
 }
 
 resource "azurerm_storage_account" "sa" {
-  name                          = "${local.base}stg${random_string.suffix.result}" # 3-24, lower only
+  name                          = substr("${lower(local.base)}stg${random_string.suffix.result}", 0, 24) # Ensure name is max 24 chars
   resource_group_name           = var.resource_group_name
   location                      = var.location
   account_tier                  = var.account_tier
@@ -29,6 +30,4 @@ resource "azurerm_storage_account" "sa" {
   access_tier                   = var.access_tier
   min_tls_version               = var.min_tls_version
   public_network_access_enabled = true
-
-  tags = var.tags
 }

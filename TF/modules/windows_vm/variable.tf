@@ -11,7 +11,7 @@ variable "admin_username" {
 variable "admin_password" {
   description = "The admin password for the Windows VM"
   type        = string
-  sensitive   = true  # This ensures the password is marked as sensitive and won't be printed in logs
+  sensitive   = true # This ensures the password is marked as sensitive and won't be printed in logs
 }
 
 variable "tags" { type = map(string) }

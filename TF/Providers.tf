@@ -1,6 +1,6 @@
+# TF/providers.tf
 terraform {
   required_version = ">= 1.3"
-
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
@@ -11,4 +11,5 @@ terraform {
 
 provider "azurerm" {
   features {}
+  use_cli = true
 }
