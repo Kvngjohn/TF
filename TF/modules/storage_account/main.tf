@@ -35,10 +35,7 @@ resource "azurerm_storage_account" "sa" {
   account_tier                     = var.account_tier             # e.g., "Standard"
   account_replication_type         = var.account_replication_type  # e.g., "LRS"
   access_tier                      = var.access_tier              # "Hot" or "Cool"
-
-  allow_blob_public_access         = var.allow_blob_public_access
   min_tls_version                  = var.min_tls_version          # "TLS1_2" or "TLS1_3"
-
   public_network_access_enabled    = true
 
   tags = var.tags

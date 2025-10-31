@@ -14,10 +14,13 @@ env:
   TF_IN_AUTOMATION: "true"
   TF_INPUT: "false"
 
+defaults:
+  run:
+    working-directory: TF
+
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
-    # Use OIDC or SP secret JSON; you already have AZURE_CREDENTIALS
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -26,10 +29,8 @@ jobs:
         run: |
           echo "PWD=$(pwd)"
           ls -la
-          echo "---- TF dir ----"
-          ls -la TF || true
-          echo "---- TF/modules ----"
-          ls -la TF/modules || true
+          echo "---- modules ----"
+          ls -la modules || true
           echo "---- full tree ----"
           find . -maxdepth 3 -type d -print
 
@@ -45,24 +46,19 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Terraform fmt
-        working-directory: TF
-        run: terraform fmt -check -diff || true
+        run: terraform fmt -recursive -check -diff || true
 
       - name: Terraform init
-        working-directory: TF
         run: terraform init -input=false
 
       - name: Terraform validate
-        working-directory: TF
         run: terraform validate
 
       - name: Terraform plan
         id: plan
-        working-directory: TF
         env:
-          # provide the VM password via TF_VAR_...
           TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
-        run: terraform plan -var-file="envs/dev.tfvars" -out=tfplan -no-color
+        run: terraform plan -var-file="envs/dev.tfvars" -out=tfplan -no-color -compact-warnings
 
       - name: Upload plan artifact
         uses: actions/upload-artifact@v4
@@ -96,11 +92,9 @@ jobs:
           path: TF
 
       - name: Terraform init
-        working-directory: TF
         run: terraform init -input=false
 
       - name: Terraform apply
-        working-directory: TF
         env:
           TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
         run: terraform apply -input=false -no-color tfplan
