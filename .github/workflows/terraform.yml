@@ -1,94 +1,106 @@
-name: Terraform Workflow
+name: Terraform CI/CD
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+env:
+  TF_IN_AUTOMATION: "true"
+  TF_INPUT: "false"
 
 jobs:
   terraform-plan:
     runs-on: ubuntu-latest
-    env:
-      ARM_CLIENT_ID:        ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET:    ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID:        ${{ secrets.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID:  ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}  # Passes the admin password as an environment variable
+    # Use OIDC or SP secret JSON; you already have AZURE_CREDENTIALS
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Terraform
+      - name: Show repo tree (debug)
+        run: |
+          echo "PWD=$(pwd)"
+          ls -la
+          echo "---- TF dir ----"
+          ls -la TF || true
+          echo "---- TF/modules ----"
+          ls -la TF/modules || true
+          echo "---- full tree ----"
+          find . -maxdepth 3 -type d -print
+
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.6.0"
           terraform_wrapper: false
 
-      - name: Azure login (Service Principal)
+      - name: Azure login (service principal JSON)
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Terraform Init
+      - name: Terraform fmt
+        working-directory: TF
+        run: terraform fmt -check -diff || true
+
+      - name: Terraform init
         working-directory: TF
         run: terraform init -input=false
 
-      - name: Terraform Validate
+      - name: Terraform validate
         working-directory: TF
         run: terraform validate
 
-      - name: Terraform Plan
+      - name: Terraform plan
+        id: plan
         working-directory: TF
-        run: |
-          set -e
-          terraform plan -input=false -lock-timeout=300s -no-color \
-            -var-file="envs/dev.tfvars" \
-            -out=tfplan
+        env:
+          # provide the VM password via TF_VAR_...
+          TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
+        run: terraform plan -var-file="envs/dev.tfvars" -out=tfplan -no-color
 
-      - name: Upload Plan Artifact
+      - name: Upload plan artifact
         uses: actions/upload-artifact@v4
         with:
           name: tfplan
           path: TF/tfplan
 
   terraform-apply:
-    needs: terraform-plan  # Ensure the plan job is completed first
     runs-on: ubuntu-latest
-    environment: dev  # Specify the environment (e.g., dev, prod)
-    env:
-      ARM_CLIENT_ID:        ${{ secrets.ARM_CLIENT_ID }}
-      ARM_CLIENT_SECRET:    ${{ secrets.ARM_CLIENT_SECRET }}
-      ARM_TENANT_ID:        ${{ secrets.ARM_TENANT_ID }}
-      ARM_SUBSCRIPTION_ID:  ${{ secrets.ARM_SUBSCRIPTION_ID }}
-      TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}  # Passes the admin password for apply
+    needs: terraform-plan
+    environment: dev
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Terraform
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.6.0"
           terraform_wrapper: false
 
-      - name: Azure login (Service Principal)
+      - name: Azure login (service principal JSON)
         uses: azure/login@v2
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Download Plan Artifact
+      - name: Download plan artifact
         uses: actions/download-artifact@v4
         with:
           name: tfplan
           path: TF
 
-      - name: Terraform Init
+      - name: Terraform init
         working-directory: TF
         run: terraform init -input=false
 
-      - name: Terraform Apply
+      - name: Terraform apply
         working-directory: TF
-        run: terraform apply -input=false -lock-timeout=300s -no-color TF/tfplan
+        env:
+          TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
+        run: terraform apply -input=false -no-color tfplan
