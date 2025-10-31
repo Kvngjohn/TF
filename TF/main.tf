@@ -51,7 +51,6 @@ module "storage_account" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   access_tier              = "Hot"
-  allow_blob_public_access = false
   min_tls_version          = "TLS1_2"
 }
 

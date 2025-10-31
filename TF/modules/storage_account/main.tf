@@ -27,16 +27,16 @@ resource "random_string" "suffix" {
 }
 
 resource "azurerm_storage_account" "sa" {
-  name                             = "${local.base}stg${random_string.suffix.result}" # 3-24, a-z0-9 only
-  resource_group_name              = var.resource_group_name
-  location                         = var.location
+  name                = "${local.base}stg${random_string.suffix.result}" # 3-24, a-z0-9 only
+  resource_group_name = var.resource_group_name
+  location            = var.location
 
   # Defaults to StorageV2 kind
-  account_tier                     = var.account_tier             # e.g., "Standard"
-  account_replication_type         = var.account_replication_type  # e.g., "LRS"
-  access_tier                      = var.access_tier              # "Hot" or "Cool"
-  min_tls_version                  = var.min_tls_version          # "TLS1_2" or "TLS1_3"
-  public_network_access_enabled    = true
+  account_tier                  = var.account_tier             # e.g., "Standard"
+  account_replication_type      = var.account_replication_type # e.g., "LRS"
+  access_tier                   = var.access_tier              # "Hot" or "Cool"
+  min_tls_version               = var.min_tls_version          # "TLS1_2" or "TLS1_3"
+  public_network_access_enabled = true
 
   tags = var.tags
 }
