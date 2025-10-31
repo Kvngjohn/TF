@@ -13,7 +13,7 @@ terraform {
 # - trim so: base(17) + "stg"(3) + suffix(4) = 24 chars max
 locals {
   base_raw   = lower(var.project_name)
-  base_clean = regexreplace(local.base_raw, "[^a-z0-9]", "")
+  base_clean = replace(lower(local.base_raw), "[^a-z0-9]", "")
   base       = substr(local.base_clean, 0, 17)
 }
 
