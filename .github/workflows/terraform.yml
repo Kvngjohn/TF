@@ -1,100 +1,29 @@
-name: Terraform CI/CD
+name: Terraform
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch: {}
-
-permissions:
-  contents: read
-
-env:
-  TF_IN_AUTOMATION: "true"
-  TF_INPUT: "false"
-
-defaults:
-  run:
-    working-directory: TF
+    branches:
+      - main
 
 jobs:
-  terraform-plan:
+  terraform:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
-      - name: Show repo tree (debug)
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: 1.5.0
+
+      - name: Initialize Terraform
+        run: terraform init -input=false
+
+      - name: Run Terraform plan
         run: |
-          echo "PWD=$(pwd)"
-          ls -la
-          echo "---- modules ----"
-          ls -la modules || true
-          echo "---- full tree ----"
-          find . -maxdepth 3 -type d -print
+          terraform plan -var "admin_password=${{ secrets.ADMIN_PASSWORD }}" -var-file="envs/dev.tfvars" -out=tfplan -no-color -compact-warnings
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.6.0"
-          terraform_wrapper: false
-
-      - name: Azure login (service principal JSON)
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Terraform fmt
-        run: terraform fmt -recursive -check -diff || true
-
-      - name: Terraform init
-        run: terraform init -input=false
-
-      - name: Terraform validate
-        run: terraform validate
-
-      - name: Terraform plan
-        id: plan
-        env:
-          TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
-        run: terraform plan -var-file="envs/dev.tfvars" -out=tfplan -no-color -compact-warnings
-
-      - name: Upload plan artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: tfplan
-          path: TF/tfplan
-
-  terraform-apply:
-    runs-on: ubuntu-latest
-    needs: terraform-plan
-    environment: dev
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.6.0"
-          terraform_wrapper: false
-
-      - name: Azure login (service principal JSON)
-        uses: azure/login@v2
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Download plan artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: tfplan
-          path: TF
-
-      - name: Terraform init
-        run: terraform init -input=false
-
-      - name: Terraform apply
-        env:
-          TF_VAR_admin_password: ${{ secrets.ADMIN_PASSWORD }}
-        run: terraform apply -input=false -no-color tfplan
+      - name: Apply Terraform plan
+        run: terraform apply tfplan -input=false -no-color
