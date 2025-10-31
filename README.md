@@ -207,4 +207,17 @@ git add .
 git commit -m "Initial POC"
 git branch -M main
 git push -u origin main
-```cd
+
+#pull changes from the main branch on the remote repository
+git pull origin main
+
+# Modules
+# If they point to non-existent locations, you need to recreate the symlink or directly place the module files in the modules/ directory.
+
+ln -s /path/to/your/module/directory modules/networking
+ln -s /path/to/your/module/directory modules/windows_vm
+terraform plan -var "admin_password=your_secret_password" -var-file="envs/dev.tfvars"
+$env:TF_VAR_admin_password
+
+PS F:\Terraform\TF> ..\terraform ..\terraform validate
+>> ..\terraform plan -var-file="envs/dev.tfvars" -out tfplan -compact-warnings
