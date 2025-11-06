@@ -52,11 +52,6 @@ variable "tags" {
     environment = "dev"
   }
 }
-# In your root variables.tf
-variable "my_public_ip" {
-  description = "Your workstation's public IP address for SQL Firewall rules"
-  type        = string
-}
 
 # Also ensure these are defined for the SQL module
 variable "sql_admin_username" {
