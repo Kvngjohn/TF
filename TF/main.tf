@@ -64,7 +64,3 @@ module "sql_database" {
   sql_admin_username = var.sql_admin_username
   sql_admin_password = var.sql_admin_password # Reusing the VM admin password for simplicity
   database_sku       = "Standard_S0"
-  
-  # Set to true and provide your IP to allow access from where you run terraform
-  allow_my_ip  = true 
-}
