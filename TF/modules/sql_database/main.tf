@@ -18,15 +18,6 @@ resource "azurerm_mssql_database" "sql_db" {
   sku_name  = var.database_sku # e.g., "Standard_S0", "Basic", "GP_Gen5_1"
 }
 
-# Optional: Add a firewall rule to allow *your* current IP address access
-resource "azurerm_mssql_firewall_rule" "allow_my_ip" {
-  count            = var.allow_my_ip ? 1 : 0
-  name             = "AllowMyIP"
-  server_id        = azurerm_mssql_server.sql_server.id
-  start_ip_address = var.my_public_ip
-  end_ip_address   = var.my_public_ip
-}
-
 # Resource to generate a random suffix for global uniqueness
 resource "random_string" "suffix" {
   length  = 4

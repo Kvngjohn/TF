@@ -8,9 +8,3 @@ variable "sql_admin_password" {}
 variable "database_sku" {
   default = "Standard_S0"
 }
-variable "allow_my_ip" {
-  default = false
-}
-variable "my_public_ip" {
-  default = "0.0.0.0" # Placeholder, update this in root module
-}
