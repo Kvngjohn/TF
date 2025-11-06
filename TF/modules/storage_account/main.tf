@@ -19,17 +19,19 @@ locals {
 
 # Short random suffix (letters only)
 resource "random_string" "suffix" {
-  length  = 4
-  lower   = true
-  upper   = false
-  numeric = false
+  length  = 4 # Example length
   special = false
+  upper   = false
+  lower   = true
+  numeric = true
 }
 
 resource "azurerm_storage_account" "sa" {
-  name                = "${local.base}stg${random_string.suffix.result}" # 3-24, a-z0-9 only
+name = "${trimspace(local.base)}stg${trimspace(random_string.suffix.result)}"
   resource_group_name = var.resource_group_name
   location            = var.location
+  account_kind          = "StorageV2"
+
 
   # Defaults to StorageV2 kind
   account_tier                  = var.account_tier             # e.g., "Standard"
