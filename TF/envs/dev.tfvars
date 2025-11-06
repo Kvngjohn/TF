@@ -15,5 +15,8 @@ tags = {
   owner       = "iac"
 }
 
+# SQL DB Variables
+sql_admin_username    = "sqladmin"
+
 # DO NOT add any of these here:
 # rg_name, vnet_name, snet_name, nsg_name, pip_name, nic_name, vm_name, admin_password

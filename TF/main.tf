@@ -53,11 +53,21 @@ module "storage_account" {
   access_tier              = "Hot"
   min_tls_version          = "TLS1_2"
 }
+module "sql_database" {
+  source = "./modules/sql_database"
 
-# -------- Root Outputs --------
-output "resource_group" { value = module.networking.rg_name }
-output "public_ip" { value = module.networking.public_ip }
-output "vm_name" { value = local.vm_name }
-output "rdp_hint" { value = "mstsc /v:${module.networking.public_ip}:3389" }
-output "storage_account_name" { value = module.storage_account.name }
-output "storage_account_id" { value = module.storage_account.id }
+  project_name        = var.project_name
+  location            = var.location
+  resource_group_name = module.networking.rg_name # Reusing the RG created by networking module
+  tags                = var.tags
+
+  sql_admin_username = var.sql_admin_username
+  sql_admin_password = var.sql_admin_password
+  database_sku       = "Standard_S0"
+  
+  # Set to true and provide your IP to allow access from where you run terraform
+  allow_my_ip  = true 
+
+  # Pass the value from the root variable, which is loaded from dev.tfvars
+  my_public_ip = var.my_public_ip 
+}
