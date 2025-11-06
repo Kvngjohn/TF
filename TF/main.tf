@@ -67,7 +67,4 @@ module "sql_database" {
   
   # Set to true and provide your IP to allow access from where you run terraform
   allow_my_ip  = true 
-
-  # Pass the value from the root variable, which is loaded from dev.tfvars
-  my_public_ip = var.my_public_ip 
 }
