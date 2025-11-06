@@ -27,7 +27,7 @@ resource "random_string" "suffix" {
 }
 
 resource "azurerm_storage_account" "sa" {
-name = "${trimspace(local.base)}stg${trimspace(random_string.suffix.result)}"
+name = "${replace(local.base, "-", "")}stg${trimspace(random_string.suffix.result)}"
   resource_group_name = var.resource_group_name
   location            = var.location
   account_kind          = "StorageV2"
