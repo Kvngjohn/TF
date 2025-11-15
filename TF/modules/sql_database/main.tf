@@ -51,7 +51,6 @@ module "sql_database" {
   source              = "./modules/sql_database"
   project_name        = var.project_name
   location            = var.location
-  resource_group_name = var.resource_group_name
   tags                = var.tags
   sql_admin_username  = var.sql_admin_username
   sql_admin_password  = var.sql_admin_password
