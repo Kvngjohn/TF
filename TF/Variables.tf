@@ -55,10 +55,10 @@ variable "tags" {
 
 # Also ensure these are defined for the SQL module
 variable "sql_admin_username" {
-    type = string
+  type = string
 }
 
 variable "sql_admin_password" {
-    type = string
-    sensitive = true # Recommended
+  type      = string
+  sensitive = true # Recommended
 }
