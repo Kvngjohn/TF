@@ -29,9 +29,13 @@ variable "sql_admin_password" {
   type        = string
   sensitive   = true
 }
+  variable "resource_group_name" {
+  description = "Resource group name"
+  type        = string
+}
 
 variable "database_sku" {
-  description = "SKU for the SQL Database"
+  description = "SKU for SQL Database"
   type        = string
   default     = "Standard_S0"
 }

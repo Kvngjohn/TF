@@ -26,14 +26,13 @@ resource "random_string" "suffix" {
 
 # Azure SQL Server
 resource "azurerm_mssql_server" "sql_server" {
-  name                         = "${var.project_name}-sql-${random_string.suffix.result}"
-  resource_group_name          = var.resource_group_name
-  location                     = var.location
-  version                      = "12.0"
-  administrator_login          = var.sql_admin_username
-  administrator_login_password = var.sql_admin_password
-
-  minimum_tls_version          = "1.2"
+  name                          = "${var.project_name}-sql-${random_string.suffix.result}"
+  resource_group_name           = var.resource_group_name
+  location                      = var.location
+  version                       = "12.0"
+  administrator_login           = var.sql_admin_username
+  administrator_login_password  = var.sql_admin_password
+  minimum_tls_version           = "1.2"
   public_network_access_enabled = true
 
   tags = var.tags
@@ -45,4 +44,16 @@ resource "azurerm_mssql_database" "sql_db" {
   server_id = azurerm_mssql_server.sql_server.id
   sku_name  = var.database_sku
   collation = "SQL_Latin1_General_CP1_CI_AS"
+}
+
+# Optional: Call SQL module for additional configuration
+module "sql_database" {
+  source              = "./modules/sql_database"
+  project_name        = var.project_name
+  location            = var.location
+  resource_group_name = var.resource_group_name
+  tags                = var.tags
+  sql_admin_username  = var.sql_admin_username
+  sql_admin_password  = var.sql_admin_password
+  database_sku        = var.database_sku
 }
