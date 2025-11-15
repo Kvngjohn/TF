@@ -1,22 +1,23 @@
+# Project settings
 project_name = "rim-dev"
 location     = "eastus2"
+resource_group_name = "rg-rim-dev"
 
-# root expects strings (the module converts them to lists)
+# Networking
 address_space = "10.0.0.0/16"
 subnet_prefix = "10.0.1.0/24"
-
 allow_rdp_from_cidr = "172.172.176.90/32"
 
+# VM settings
 vm_size        = "Standard_B2ms"
 admin_username = "azureadmin"
 
+# Tags
 tags = {
   environment = "dev"
   owner       = "iac"
 }
 
-# SQL DB Variables
-sql_admin_username    = "Kvngjohn"
-
-# DO NOT add any of these here:
-# rg_name, vnet_name, snet_name, nsg_name, pip_name, nic_name, vm_name, admin_password
+# SQL settings
+sql_admin_username = "Kvngjohn"  # Password comes from GitHub secret
+database_sku       = "Standard_S0"
