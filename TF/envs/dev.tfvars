@@ -20,4 +20,3 @@ tags = {
 
 # SQL settings
 sql_admin_username = "Kvngjohn"  # Password comes from GitHub secret
-database_sku       = "S0"
