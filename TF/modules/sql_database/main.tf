@@ -1,20 +1,3 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
-    random = {
-      source  = "hashicorp/random"
-      version = "~> 3.0"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {}
-}
-
 # Generate random suffix for global uniqueness
 resource "random_string" "suffix" {
   length  = 4
@@ -37,22 +20,9 @@ resource "azurerm_mssql_server" "sql_server" {
 
   tags = var.tags
 }
-
-# Azure SQL Database
 resource "azurerm_mssql_database" "sql_db" {
   name      = "${var.project_name}-sqldb"
   server_id = azurerm_mssql_server.sql_server.id
-  sku_name  = var.database_sku
   collation = "SQL_Latin1_General_CP1_CI_AS"
-}
-
-# Optional: Call SQL module for additional configuration
-module "sql_database" {
-  source              = "./modules/sql_database"
-  project_name        = var.project_name
-  location            = var.location
-  tags                = var.tags
-  sql_admin_username  = var.sql_admin_username
-  sql_admin_password  = var.sql_admin_password
-  database_sku        = var.database_sku
+  sku_name  = var.database_sku
 }
