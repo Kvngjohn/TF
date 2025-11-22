@@ -57,8 +57,13 @@ variable "tags" {
 variable "sql_admin_username" {
   type = string
 }
-
 variable "sql_admin_password" {
+  description = "SQL Server admin password"
   type      = string
   sensitive = true # Recommended
+  }
+variable "database_sku" {
+  description = "Azure SQL Database SKU (e.g., S0, GP_Gen5_2)"
+  type        = string
+  default     = "S0" # optional; remove if you want tfvars to be mandatory
 }

@@ -58,10 +58,10 @@ module "sql_database" {
 
   project_name        = var.project_name
   location            = var.location
-  resource_group_name = module.networking.rg_name # Reusing the RG created by networking module
+  resource_group_name = module.networking.rg_name  # single source of truth
   tags                = var.tags
 
-  sql_admin_username = var.sql_admin_username
-  sql_admin_password = var.sql_admin_password # Reusing the VM admin password for simplicity
-  database_sku       = "Standard_S0"
+  sql_admin_username  = var.sql_admin_username
+  sql_admin_password  = var.sql_admin_password
+  database_sku        = var.database_sku
 }

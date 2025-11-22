@@ -28,9 +28,9 @@ variable "sql_admin_password" {
   description = "SQL Server admin password"
   type        = string
   sensitive   = true
-}
+  }
 variable "database_sku" {
-  description = "SKU for SQL Database"
+  description = "Azure SQL Database SKU (e.g., S0, GP_Gen5_2)"
   type        = string
-  default     = "GP_Gen5_2"
+  default     = "S0" # or remove default to force tfvars input
 }
