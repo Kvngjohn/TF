@@ -1,0 +1,13 @@
+variable "project_name"          { type = string }
+variable "location"              { type = string }
+variable "resource_group_name"   { type = string }
+variable "tags"                  { type = map(string) }
+variable "spoke_address_space"   { type = string }
+variable "app_subnet_prefix"     { type = string }
+variable "data_subnet_prefix"    { type = string }
+variable "storage_subnet_prefix" { type = string }
+variable "appgw_subnet_prefix"   { type = string }
+variable "allow_rdp_from_cidr"   { type = string }
+variable "hub_vnet_id"           { type = string }
+variable "hub_vnet_name"         { type = string }
+variable "spoke_udr_id"          { type = string }

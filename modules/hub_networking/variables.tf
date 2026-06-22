@@ -1,0 +1,10 @@
+variable "project_name"               { type = string }
+variable "location"                   { type = string }
+variable "resource_group_name"        { type = string }
+variable "tags"                       { type = map(string) }
+variable "hub_address_space"          { type = string }
+variable "firewall_subnet_prefix"     { type = string }
+variable "hub_mgmt_subnet_prefix"     { type = string }
+variable "bastion_subnet_prefix"      { type = string }
+variable "spoke_address_space"        { type = string }
+variable "log_analytics_workspace_id" { type = string }
