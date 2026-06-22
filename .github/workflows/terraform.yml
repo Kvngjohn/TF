@@ -21,17 +21,23 @@ jobs:
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # 2. Log in directly to the Azure CLI using your Service Principal Secrets
+    # 2. Log in directly to the Azure CLI using a safe multi-line JSON format
     - name: Azure Login
       uses: azure/login@v2
       with:
-        creds: '{"clientId":"${{ secrets.AZURE_CLIENT_ID }}","clientSecret":"${{ secrets.AZURE_CLIENT_SECRET }}","subscriptionId":"${{ secrets.AZURE_SUBSCRIPTION_ID }}","tenantId":"${{ secrets.AZURE_TENANT_ID }}"}'
+        creds: |
+          {
+            "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
+            "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
+            "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
+            "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
+          }
 
     # 3. Setup the Terraform CLI environment
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    # 4. Initialize working directory (Bypasses errors by querying the authenticated CLI context)
+    # 4. Initialize working directory (Queries the authenticated CLI context)
     - name: Terraform Init
       run: terraform init
 
@@ -39,6 +45,6 @@ jobs:
     - name: Terraform Plan
       run: terraform plan
 
-    # 6. Execute the changes automatically (-auto-approve skips interactive prompts)
+    # 6. Execute the changes automatically
     - name: Terraform Apply
       run: terraform apply -auto-approve
