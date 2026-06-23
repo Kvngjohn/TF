@@ -1,15 +1,5 @@
 ########################################
 # ROOT main.tf — Hub-Spoke Architecture
-#
-# Internet
-#   → Azure Front Door Premium (global WAF/DDoS + CDN)
-#     → App Gateway WAF_v2 (regional L7 LB + OWASP)
-#       → 3 Windows VMs in Spoke App Subnet
-#
-# Egress: Spoke UDR → Azure Firewall in Hub (force-tunnel)
-# Management: Azure Bastion in Hub (no VM public IPs needed)
-# SQL + Storage: private endpoints only (public_network_access disabled)
-# Backups: Recovery Services Vault (VMs), built-in SQL LTR
 ########################################
 
 locals {
@@ -18,16 +8,29 @@ locals {
     coalesce(var.vm_name_2, "${var.project_name}-winvm02"),
     coalesce(var.vm_name_3, "${var.project_name}-winvm03"),
   ]
+
   vm_keys = ["vm01", "vm02", "vm03"]
+
+  # ✅ Safe naming prefix (Azure compliant)
+  safe_prefix = substr(
+    replace(lower(var.project_name), "[^a-z0-9]", ""),
+    0,
+    15
+  )
 }
 
+############################################
+# Resource Group
+############################################
 resource "azurerm_resource_group" "rg" {
   name     = "${var.project_name}-rg"
   location = var.location
   tags     = var.tags
 }
 
-# Log Analytics workspace — shared sink for all diagnostics and DCR
+############################################
+# Log Analytics Workspace
+############################################
 resource "azurerm_log_analytics_workspace" "law" {
   name                = "${var.project_name}-law"
   location            = var.location
@@ -37,7 +40,9 @@ resource "azurerm_log_analytics_workspace" "law" {
   tags                = var.tags
 }
 
-# ── 1. Hub Networking: Hub VNet + Azure Firewall + Bastion + UDR
+############################################
+# Hub Networking
+############################################
 module "hub_networking" {
   source = "./modules/hub_networking"
 
@@ -53,7 +58,9 @@ module "hub_networking" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 }
 
-# ── 2. Spoke Networking: App/Data/Storage/AppGW subnets + VNet Peering
+############################################
+# Spoke Networking
+############################################
 module "spoke_networking" {
   source = "./modules/spoke_networking"
 
@@ -72,6 +79,9 @@ module "spoke_networking" {
   spoke_udr_id          = module.hub_networking.spoke_udr_id
 }
 
+############################################
+# Windows VMs
+############################################
 module "windows_vm" {
   count  = 3
   source = "./modules/windows_vm"
@@ -82,13 +92,15 @@ module "windows_vm" {
   vm_size             = var.vm_size
   admin_username      = var.admin_username
   admin_password      = var.admin_password
-  alert_email         = var.alert_email   
+  alert_email         = var.alert_email
   subnet_id           = module.spoke_networking.app_subnet_id
   create_public_ip    = false
   tags                = var.tags
 }
 
-# ── 4. Application Gateway WAF_v2 (regional load balancer in front of VMs)
+############################################
+# Application Gateway
+############################################
 module "app_gateway" {
   source = "./modules/app_gateway"
 
@@ -96,11 +108,19 @@ module "app_gateway" {
   location            = var.location
   resource_group_name = azurerm_resource_group.rg.name
   tags                = var.tags
-  appgw_subnet_id     = module.spoke_networking.appgw_subnet_id
-  vm_backend_ips      = [for vm in module.windows_vm : vm.private_ip]
+
+  appgw_subnet_id = module.spoke_networking.appgw_subnet_id
+
+  vm_backend_ips = [
+    for vm in module.windows_vm : vm.private_ip
+  ]
+
+  depends_on = [module.windows_vm] # ✅ prevents race condition
 }
 
-# ── 5. Storage Account (public access off, blob private endpoint)
+############################################
+# Storage Account (Private only)
+############################################
 module "storage_account" {
   source = "./modules/storage_account"
 
@@ -112,12 +132,15 @@ module "storage_account" {
   account_replication_type = "LRS"
   access_tier              = "Hot"
   min_tls_version          = "TLS1_2"
-  spoke_vnet_id            = module.spoke_networking.spoke_vnet_id
-  hub_vnet_id              = module.hub_networking.hub_vnet_id
-  storage_subnet_id        = module.spoke_networking.storage_subnet_id
+
+  spoke_vnet_id     = module.spoke_networking.spoke_vnet_id
+  hub_vnet_id       = module.hub_networking.hub_vnet_id
+  storage_subnet_id = module.spoke_networking.storage_subnet_id
 }
 
-# ── 6. SQL: primary+reporting servers, DR secondary (centralus), failover group
+############################################
+# SQL Database
+############################################
 module "sql_database" {
   source = "./modules/sql_database"
 
@@ -125,18 +148,23 @@ module "sql_database" {
   location               = var.location
   resource_group_name    = azurerm_resource_group.rg.name
   tags                   = var.tags
+
   sql_admin_username     = var.sql_admin_username
   sql_admin_password     = var.sql_admin_password
   database_sku_primary   = var.database_sku_primary
   database_sku_reporting = var.database_sku_reporting
   secondary_location     = var.secondary_location
-  spoke_vnet_id          = module.spoke_networking.spoke_vnet_id
-  hub_vnet_id            = module.hub_networking.hub_vnet_id
-  data_subnet_id         = module.spoke_networking.data_subnet_id
-  alert_email            = var.alert_email
+
+  spoke_vnet_id  = module.spoke_networking.spoke_vnet_id
+  hub_vnet_id    = module.hub_networking.hub_vnet_id
+  data_subnet_id = module.spoke_networking.data_subnet_id
+
+  alert_email = var.alert_email
 }
 
-# ── 7. Monitoring: CPU/Memory/Disk/SQL-storage alerts + DCR + diagnostics
+############################################
+# Monitoring
+############################################
 module "monitoring" {
   source = "./modules/monitoring"
 
@@ -145,13 +173,22 @@ module "monitoring" {
   resource_group_name        = azurerm_resource_group.rg.name
   tags                       = var.tags
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
-  alert_email                = var.alert_email
-  storage_account_id         = module.storage_account.id
-  vm_ids                     = { for i, k in local.vm_keys : k => module.windows_vm[i].vm_id }
-  sql_db_ids                 = module.sql_database.sql_db_ids
+
+  alert_email = var.alert_email
+
+  storage_account_id = module.storage_account.id
+
+  vm_ids = {
+    for idx, key in local.vm_keys :
+    key => module.windows_vm[idx].vm_id
+  }
+
+  sql_db_ids = module.sql_database.sql_db_ids
 }
 
-# ── 8. Recovery Services Vault: VM daily backups + 12w/12m retention
+############################################
+# Recovery Vault
+############################################
 module "recovery_vault" {
   source = "./modules/recovery_vault"
 
@@ -160,23 +197,34 @@ module "recovery_vault" {
   resource_group_name = azurerm_resource_group.rg.name
   tags                = var.tags
   vault_redundancy    = var.vault_redundancy
-  vm_ids              = { for i, k in local.vm_keys : k => module.windows_vm[i].vm_id }
+
+  vm_ids = {
+    for idx, key in local.vm_keys :
+    key => module.windows_vm[idx].vm_id
+  }
 }
 
-# ── 9. Front Door Premium: global DDoS + CDN — origin = App Gateway public IP
+############################################
+# Front Door
+############################################
 module "front_door" {
   source = "./modules/front_door"
 
   project_name        = var.project_name
   resource_group_name = azurerm_resource_group.rg.name
   tags                = var.tags
-  origin_host_name    = module.app_gateway.public_ip
+
+  origin_host_name = module.app_gateway.public_ip
+
+  depends_on = [module.app_gateway] # ✅ ensure ordering
 }
 
-# ── 10. NSG Flow Logs — Traffic Analytics for the app subnet NSG ─────────────
-
+############################################
+# NSG Flow Logs + Traffic Analytics
+############################################
 resource "azurerm_storage_account" "flow_logs" {
-  name                     = "${replace(lower(var.project_name), "/[^a-z0-9]/", "")}flow"
+  name = substr("${local.safe_prefix}flow", 0, 24)
+
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = var.location
   account_tier             = "Standard"
@@ -193,9 +241,9 @@ resource "azurerm_network_watcher" "nw" {
 }
 
 resource "azurerm_network_watcher_flow_log" "app_nsg" {
-  network_watcher_name = azurerm_network_watcher.nw.name
+  name                 = "${var.project_name}-flowlog"
   resource_group_name  = azurerm_resource_group.rg.name
-  name                 = "${var.project_name}-app-nsg-flowlog"
+  network_watcher_name = azurerm_network_watcher.nw.name
 
   network_security_group_id = module.spoke_networking.app_nsg_id
   storage_account_id        = azurerm_storage_account.flow_logs.id
