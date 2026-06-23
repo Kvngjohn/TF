@@ -1,4 +1,4 @@
-name: 'Terraform Deploy'
+name: Terraform Deploy
 
 on:
   push:
@@ -6,10 +6,9 @@ on:
 
 jobs:
   terraform:
-    name: 'Terraform Plan and Apply'
+    name: Terraform Plan and Apply
     runs-on: ubuntu-latest
 
-    # Map your GitHub Secrets to the exact names Terraform reads
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
@@ -17,11 +16,9 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
     steps:
-    # 1. Pull down your code
     - name: Checkout Code
       uses: actions/checkout@v4
 
-    # 2. Log in directly to the Azure CLI using a safe multi-line JSON format
     - name: Azure Login
       uses: azure/login@v2
       with:
@@ -33,18 +30,14 @@ jobs:
             "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
           }
 
-    # 3. Setup the Terraform CLI environment
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
-    # 4. Initialize working directory (Queries the authenticated CLI context)
     - name: Terraform Init
       run: terraform init
 
-    # 5. Generate the preview plan (Shows you what will happen)
     - name: Terraform Plan
       run: terraform plan
 
-    # 6. Execute the changes automatically
     - name: Terraform Apply
       run: terraform apply -auto-approve
