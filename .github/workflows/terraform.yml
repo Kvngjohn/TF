@@ -18,6 +18,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # ✅ ONLY THIS (no client-secret param, no OIDC)
     - name: Azure Login
       uses: azure/login@v2
       with:
