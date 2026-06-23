@@ -11,9 +11,9 @@ locals {
 
   vm_keys = ["vm01", "vm02", "vm03"]
 
-  # ✅ Safe naming prefix (Azure compliant)
-  safe_prefix = substr(
-    replace(lower(var.project_name), "[^a-z0-9]", ""),
+  # ✅ Clean Azure-compliant naming (no hyphens)
+  base_clean = substr(
+    join("", regexall("[a-z0-9]+", lower(var.project_name))),
     0,
     15
   )
@@ -115,11 +115,11 @@ module "app_gateway" {
     for vm in module.windows_vm : vm.private_ip
   ]
 
-  depends_on = [module.windows_vm] # ✅ prevents race condition
+  depends_on = [module.windows_vm]
 }
 
 ############################################
-# Storage Account (Private only)
+# Storage Account (Module)
 ############################################
 module "storage_account" {
   source = "./modules/storage_account"
@@ -175,7 +175,6 @@ module "monitoring" {
   log_analytics_workspace_id = azurerm_log_analytics_workspace.law.id
 
   alert_email = var.alert_email
-
   storage_account_id = module.storage_account.id
 
   vm_ids = {
@@ -216,14 +215,14 @@ module "front_door" {
 
   origin_host_name = module.app_gateway.public_ip
 
-  depends_on = [module.app_gateway] # ✅ ensure ordering
+  depends_on = [module.app_gateway]
 }
 
 ############################################
-# NSG Flow Logs + Traffic Analytics
+# NSG Flow Logs Storage (FIXED ✅)
 ############################################
 resource "azurerm_storage_account" "flow_logs" {
-  name = substr("${local.safe_prefix}flow", 0, 24)
+  name = substr("${local.base_clean}flow", 0, 24)
 
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = var.location
@@ -233,6 +232,9 @@ resource "azurerm_storage_account" "flow_logs" {
   tags                     = var.tags
 }
 
+############################################
+# Network Watcher + Flow Logs
+############################################
 resource "azurerm_network_watcher" "nw" {
   name                = "${var.project_name}-nw"
   location            = var.location

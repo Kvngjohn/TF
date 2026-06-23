@@ -7,12 +7,20 @@ terraform {
   }
 }
 
+############################################
+# Locals - clean Azure-compliant naming
+############################################
 locals {
-  base_raw   = lower(var.project_name)
-  base_clean = join("", regexall("[a-z0-9]+", local.base_raw))
-  base       = substr(local.base_clean, 0, 17)
+  base = substr(
+    join("", regexall("[a-z0-9]+", lower(var.project_name))),
+    0,
+    15
+  )
 }
 
+############################################
+# Random suffix for global uniqueness
+############################################
 resource "random_string" "suffix" {
   length  = 4
   special = false
@@ -21,8 +29,11 @@ resource "random_string" "suffix" {
   numeric = true
 }
 
+############################################
+# Storage Account (Private only)
+############################################
 resource "azurerm_storage_account" "sa" {
-  name                          = "${replace(local.base, "-", "")}stg${trimspace(random_string.suffix.result)}"
+  name                          = "${local.base}stg${random_string.suffix.result}"
   resource_group_name           = var.resource_group_name
   location                      = var.location
   account_kind                  = "StorageV2"
@@ -30,7 +41,7 @@ resource "azurerm_storage_account" "sa" {
   account_replication_type      = var.account_replication_type
   access_tier                   = var.access_tier
   min_tls_version               = var.min_tls_version
-  public_network_access_enabled = false   # all access via private endpoint
+  public_network_access_enabled = false
   tags                          = var.tags
 
   lifecycle {
@@ -38,16 +49,18 @@ resource "azurerm_storage_account" "sa" {
   }
 }
 
-########################################
+############################################
 # Private DNS Zone for Blob
-########################################
-
+############################################
 resource "azurerm_private_dns_zone" "blob" {
   name                = "privatelink.blob.core.windows.net"
   resource_group_name = var.resource_group_name
   tags                = var.tags
 }
 
+############################################
+# DNS VNet Links
+############################################
 resource "azurerm_private_dns_zone_virtual_network_link" "blob_spoke" {
   name                  = "${var.project_name}-blob-dns-spoke"
   resource_group_name   = var.resource_group_name
@@ -66,10 +79,9 @@ resource "azurerm_private_dns_zone_virtual_network_link" "blob_hub" {
   tags                  = var.tags
 }
 
-########################################
-# Private Endpoint for Blob
-########################################
-
+############################################
+# Private Endpoint (Blob)
+############################################
 resource "azurerm_private_endpoint" "blob_pe" {
   name                = "${var.project_name}-blob-pe"
   location            = var.location
