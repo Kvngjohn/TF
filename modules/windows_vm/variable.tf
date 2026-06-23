@@ -20,5 +20,8 @@ variable "admin_password" {
   type        = string
   sensitive   = true
 }
-
+variable "alert_email" {
+  description = "Email address to receive Azure Monitor alert notifications"
+  type        = string
+}
 variable "tags" { type = map(string) }
