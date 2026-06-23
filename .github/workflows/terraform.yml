@@ -9,16 +9,19 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # Azure auth
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # Terraform vars
+      TF_VAR_admin_username: ${{ secrets.TF_VAR_ADMIN_USERNAME }}
       TF_VAR_admin_password: ${{ secrets.TF_VAR_ADMIN_PASSWORD }}
 
     steps:
     - uses: actions/checkout@v4
 
-    # ✅ ONLY THIS (no client-secret param, no OIDC)
     - name: Azure Login
       uses: azure/login@v2
       with:
@@ -32,6 +35,14 @@ jobs:
 
     - uses: hashicorp/setup-terraform@v3
 
-    - run: terraform init
-    - run: terraform plan
-    - run: terraform apply -auto-approve
+    - name: Terraform Init
+      run: terraform init
+
+    - name: Terraform Validate
+      run: terraform validate
+
+    - name: Terraform Plan
+      run: terraform plan
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
