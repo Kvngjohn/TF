@@ -72,7 +72,6 @@ module "spoke_networking" {
   spoke_udr_id          = module.hub_networking.spoke_udr_id
 }
 
-# ── 3. Windows VMs (3 servers — no public IPs; use Bastion for access)
 module "windows_vm" {
   count  = 3
   source = "./modules/windows_vm"
@@ -83,8 +82,9 @@ module "windows_vm" {
   vm_size             = var.vm_size
   admin_username      = var.admin_username
   admin_password      = var.admin_password
+  alert_email         = var.alert_email   
   subnet_id           = module.spoke_networking.app_subnet_id
-  create_public_ip    = false   # Bastion handles management access
+  create_public_ip    = false
   tags                = var.tags
 }
 
