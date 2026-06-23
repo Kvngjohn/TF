@@ -10,34 +10,44 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
+      # Azure authentication (Service Principal)
       ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
       ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      # Terraform variables (must match exactly)
+      TF_VAR_admin_password: ${{ secrets.TF_VAR_ADMIN_PASSWORD }}
+      # (add more if needed)
+      # TF_VAR_sql_admin_password: ${{ secrets.TF_VAR_SQL_ADMIN_PASSWORD }}
+
     steps:
+    # 1. Checkout repo
     - name: Checkout Code
       uses: actions/checkout@v4
 
+    # 2. Azure login (clean version — NO JSON)
     - name: Azure Login
       uses: azure/login@v2
       with:
-        creds: |
-          {
-            "clientId": "${{ secrets.AZURE_CLIENT_ID }}",
-            "clientSecret": "${{ secrets.AZURE_CLIENT_SECRET }}",
-            "subscriptionId": "${{ secrets.AZURE_SUBSCRIPTION_ID }}",
-            "tenantId": "${{ secrets.AZURE_TENANT_ID }}"
-          }
+        client-id: ${{ secrets.AZURE_CLIENT_ID }}
+        tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+        subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+        client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
 
+    # 3. Install Terraform
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
 
+    # 4. Init (backend)
     - name: Terraform Init
       run: terraform init
 
+    # 5. Plan
     - name: Terraform Plan
       run: terraform plan
 
+    # 6. Apply
     - name: Terraform Apply
+      if: github.ref == 'refs/heads/main'
       run: terraform apply -auto-approve
